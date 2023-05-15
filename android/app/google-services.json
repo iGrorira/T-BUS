@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "829356603722",
+    "project_id": "runnn-tbus",
+    "storage_bucket": "runnn-tbus.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829356603722:android:8e905d9934e22bce8269b3",
+        "android_client_info": {
+          "package_name": "com.example.runnn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "829356603722-0ph1dj8fsohe386o5sqmtionpsboojpv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBnmeJRDbh4eLLmZlLEESSeBsqHwjUbPn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "829356603722-0ph1dj8fsohe386o5sqmtionpsboojpv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
