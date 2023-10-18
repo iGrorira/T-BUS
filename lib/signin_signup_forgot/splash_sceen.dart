@@ -23,6 +23,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //mq = MediaQuery.of(context).size;
+
     return Scaffold(
       backgroundColor: AppColors.appblue,
       body: SafeArea(

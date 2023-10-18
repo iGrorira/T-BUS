@@ -2,17 +2,14 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:flutter/material.dart';
-import 'package:runnn/bottom_nav_page/home.dart';
-
-import 'package:runnn/admin/car.dart';
+import 'package:runnn/admin/sideManuBar/side_manu_bar.dart';
+import 'package:runnn/user/bottom_nav_page/bottom_nuv_user.dart';
 
 class checkRole extends StatefulWidget {
   const checkRole({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _checkRoleState createState() => _checkRoleState();
 }
 
@@ -27,7 +24,7 @@ class _checkRoleState extends State<checkRole> {
 
   void _checkRole() async {
     final DocumentSnapshot snap = await FirebaseFirestore.instance
-        .collection('users-form-data')
+        .collection('Users')
         .doc(FirebaseAuth.instance.currentUser!.email)
         .get();
 
@@ -36,9 +33,9 @@ class _checkRoleState extends State<checkRole> {
     });
 
     if (role == 'User') {
-      navigateNext(const Home());
+      navigateNext(const ButtomNuvUser());
     } else if (role == 'Admin') {
-      navigateNext(const CarAdmin());
+      navigateNext(const SideBarManu());
     }
   }
 
@@ -49,14 +46,10 @@ class _checkRoleState extends State<checkRole> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Text('Welcome'),
-          ],
-        ),
+    return const SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
       ),
     );
   }

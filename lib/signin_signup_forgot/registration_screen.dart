@@ -1,9 +1,13 @@
+import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:runnn/ui/bottom_nav_controller.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:runnn/signin_signup_forgot/login_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:runnn/user/bottom_nav_page/bottom_nuv_user.dart';
 import '../const/appcolors.dart';
 
 class RegistrationSrceen extends StatefulWidget {
@@ -19,16 +23,47 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
   final _confirmpasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  sendUserRole() async {
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    var currentUser = auth.currentUser;
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection("Users");
+    return collectionRef.doc(currentUser!.email).set({
+      "role": "User",
+      "email": currentUser.email,
+    });
+  }
+
+  sendUserData() async {
+    String time = DateFormat('dd2566kkmmss').format(DateTime.now());
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    var currentUser = auth.currentUser;
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection("Users");
+    return collectionRef
+        .doc(currentUser!.email)
+        .collection("UsersProfile")
+        .doc(currentUser.email)
+        .set({
+      "username": "username$time",
+      "email": currentUser.email,
+      "ImageUrl":
+          "https://firebasestorage.googleapis.com/v0/b/runnn-tbus.appspot.com/o/profileUser%2Fprofiletbus.png?alt=media&token=287b6502-959e-4f72-b7a8-692e2afccb14",
+    });
+  }
+
   signUp() async {
     try {
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
               email: _emailController.text, password: _passwordController.text);
       var authCredential = credential.user;
-      print(authCredential!.uid);
+      log(authCredential!.uid);
+      sendUserRole();
+      sendUserData();
       if (authCredential.uid.isNotEmpty) {
         Navigator.push(
-            context, CupertinoPageRoute(builder: (_) => BottomNavController()));
+            context, CupertinoPageRoute(builder: (_) => const ButtomNuvUser()));
       } else {
         Fluttertoast.showToast(msg: "Something is wrong");
       }
@@ -62,9 +97,12 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
                     height: 160,
                   ),
                   const SizedBox(height: 10),
-                  const Text(
+                  Text(
                     'สมัครสมาชิก',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.baiJamjuree(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
                   ),
                   const SizedBox(height: 20),
                   Email(),
@@ -73,7 +111,7 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
                   const SizedBox(height: 10),
                   confirmpassword(),
                   const SizedBox(height: 10),
-                  BottomSignup(),
+                  button(),
                   const SizedBox(height: 10),
                   aMember(context),
                 ],
@@ -85,28 +123,50 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
     );
   }
 
-  Padding BottomSignup() {
+  String timeDoc = DateFormat('dd_M_2566').format(DateTime.now());
+  String time = DateFormat('dd/M/2566').format(DateTime.now());
+  int count = 0;
+  Padding button() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 75.0),
-      child: GestureDetector(
-        onTap: () {
+      padding: const EdgeInsets.symmetric(horizontal: 100),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.buttomapp,
+          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+          shape: const StadiumBorder(),
+        ),
+        onPressed: () async {
           if (_formKey.currentState!.validate()) {
             signUp();
+            final countRouteMostRef =
+                FirebaseFirestore.instance.collection("Counter").doc(timeDoc);
+
+            final existingData = await countRouteMostRef.get();
+
+            if (existingData.exists) {
+              // กรณีมีข้อมูลอยู่แล้ว
+              final existingCount = existingData.data()?['count'] ?? 0;
+              count =
+                  existingCount + 1; // เพิ่มค่า count เมื่อเก็บข้อมูลต่อเนื่อง
+            } else {
+              // กรณียังไม่มีข้อมูล
+              count =
+                  1; // เริ่มนับใหม่เมื่อเก็บข้อมูลลงคอลเลกชันที่ยังไม่มีข้อมูล
+            }
+
+            await countRouteMostRef.set({
+              "count": count,
+              "time": time,
+            });
           }
         },
-        child: Container(
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-              color: AppColors.buttomapp,
-              borderRadius: BorderRadius.circular(12)),
-          child: const Center(
-            child: Text(
-              'สมัครสมาชิก',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+        child: Center(
+          child: Text(
+            'สมัครสมาชิก',
+            style: GoogleFonts.baiJamjuree(
+              color: Colors.white,
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
             ),
           ),
         ),
@@ -118,26 +178,19 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
+        Text(
           'เป็นสมาชิกอยู่แล้ว?',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.baiJamjuree(
+              fontWeight: FontWeight.bold, color: Colors.black),
         ),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return const LoginScreen();
-                },
-              ),
-            );
+        TextButton(
+          onPressed: () {
+            Navigator.push(context,
+                CupertinoPageRoute(builder: (context) => const LoginScreen()));
           },
-          child: const Text(
-            ' เข้าสู่ระบบเลย',
-            style: TextStyle(
+          child: Text(
+            'เข้าสู่ระบบเลย',
+            style: GoogleFonts.baiJamjuree(
               color: Colors.blue,
               fontWeight: FontWeight.bold,
             ),
@@ -147,35 +200,11 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
     );
   }
 
-  Padding SingInButton(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 75.0),
-      child: GestureDetector(
-        onTap: signUp,
-        child: Container(
-          padding: const EdgeInsets.all(15),
-          decoration: BoxDecoration(
-              color: AppColors.buttomapp,
-              borderRadius: BorderRadius.circular(12)),
-          child: const Center(
-            child: Text(
-              'สมัครสมาชิก',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Padding confirmpassword() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextFormField(
+        style: GoogleFonts.baiJamjuree(color: Colors.black),
         controller: _confirmpasswordController,
         obscureText: true,
         decoration: InputDecoration(
@@ -192,9 +221,11 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
           if (value == null || value.isEmpty) {
             return 'กรุณาใส่รหัสผ่าน';
           }
+
           if (_passwordController.text != _confirmpasswordController.text) {
             return "รหัสผ่านไม่ตรงกัน";
           }
+
           return null;
         },
       ),
@@ -205,6 +236,7 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextFormField(
+        style: GoogleFonts.baiJamjuree(color: Colors.black),
         controller: _passwordController,
         obscureText: true,
         decoration: InputDecoration(
@@ -224,6 +256,7 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
           if (_passwordController.text != _confirmpasswordController.text) {
             return "รหัสผ่านไม่ตรงกัน";
           }
+
           return null;
         },
       ),
@@ -234,6 +267,7 @@ class _RegistrationSrceenState extends State<RegistrationSrceen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25.0),
       child: TextFormField(
+        style: GoogleFonts.baiJamjuree(color: Colors.black),
         controller: _emailController,
         decoration: InputDecoration(
           border: OutlineInputBorder(
